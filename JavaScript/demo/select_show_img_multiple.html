@@ -1,0 +1,36 @@
+<body>
+    <input type="file" class="uploading" name="images" id="images" accept="image/*" multiple="multiple">
+    <div id="showImagesContainer"></div>
+</body>
+
+<script>
+var imagesInputId           = 'images';
+var selectedImages          = document.getElementById(imagesInputId);
+
+selectedImages.addEventListener('change', function() {
+    let tempFiles           = this.files;
+    let makeHtmlFiles       = '';
+    let htmlIdImage          = '';
+
+    for(let item of tempFiles) {
+        makeHtmlFiles += '<div>' + item.name
+            + '</div><div style="width: 150px;height: 100px;"><img id="imgId_' + item.name.replace(".", "_")
+            + '" style="max-width: 150px; max-height: 100px;"/></div>';
+    }
+    document.getElementById('showImagesContainer').innerHTML = makeHtmlFiles;
+
+    for (var i = 0; i < tempFiles.length; i++) {
+        htmlIdImage = 'imgId_' + tempFiles[i].name.replace(".", "_");
+        getFileReader(tempFiles[i], htmlIdImage);
+    }
+});
+
+function getFileReader(file, elem) {
+    var reader      = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload   = function (e) {
+        document.getElementById(elem).setAttribute('src',  e.target.result);
+    };
+}
+</script>
+

@@ -1,0 +1,173 @@
+<!DOCTYPE html><html><head><title>-</title><meta http-equiv='X-UA-Compatible' content='IE=edge, chrome=1'></head><body></body></html>
+
+<script>
+console.log('start');
+///////////////////////////////////////////////////////////////////////////////
+'use strict';
+
+(function( window, undefined ) {
+
+    var vendor  = navigator.vendor,
+    appVersion  = navigator.appVersion,
+    buildID     = navigator.buildID,
+    cpuClass    = navigator.cpuClass,
+    platform    = navigator.platform,
+    oscpu       = navigator.oscpu,
+    checkId     = '',
+
+    // 浏览器
+    getBS     = function() {
+        if (window.mozInnerScreenX != undefined) return 'Firefox';
+
+        if ((/Microsoft Internet Explorer/gi).test(navigator.appName)) return 'IE';
+        if ((/MSIE/gi).test(navigator.appVersion)) return 'IE';
+        if ((/rv\:11\.0/gi).test(navigator.appVersion)
+            && (/(Windows NT)/gi).test(navigator.appVersion)) return 'IE'; //IE11
+
+        if ((/Apple/gi).test(navigator.vendor)) return 'Safari';
+        if ((/Google/gi).test(navigator.vendor)) return 'Chrome';
+
+        //if ((/opr/gi).test(navigator.appVersion)) return 'Opera';
+
+        return 'Unknown Browser';
+    },
+
+    // 设备类型
+    getDevice = function() {
+        if(getBS() == 'Firefox') {
+            checkId = navigator.oscpu;
+        } else {
+            checkId = navigator.appVersion;
+        }
+        if ((/(Windows Phone)/gi).test(checkId)) return 'Windows Phone';
+        if ((/(Windows NT)/gi).test(checkId)) return 'PC';
+        if ((/(MSIE)/gi).test(checkId)) return 'PC';
+        if ((/(iPhone|iPod)/gi).test(checkId)) return 'iPhone';
+        if ((/(iPad)/gi).test(checkId)) return 'iPad';
+        if ((/(Android)/gi).test(checkId)) return 'Android';
+        if ((/(Mac OS X)/gi).test(checkId)) return 'PC';
+        return 'Unknown Device';
+    },
+
+    // Is Microsoft PC
+    isMsPc = function() {
+        if(getDevice() != 'PC') return false;
+        if ((/(Windows NT)/gi).test(checkId)) return true;
+        if ((/(MSIE)/gi).test(checkId)) return true;
+        return false;
+    },
+
+    // Is Mac
+    isMac = function() {
+        if(getDevice() != 'PC') return false;
+        if ((/(Mac OS X)/gi).test(checkId)) return true;
+        return false;
+    },
+
+    // IE版本
+    getIE     = function() {
+        if(getBS() != 'IE') return false;
+        if(getBS() == 'IE') {
+            if ((/MSIE 6\./gi).test(navigator.appVersion)) return 'IE 6';
+            if ((/MSIE 7\./gi).test(navigator.appVersion)) return 'IE 7';
+            if ((/MSIE 8\./gi).test(navigator.appVersion)) return 'IE 8';
+            if ((/MSIE 9\./gi).test(navigator.appVersion)) return 'IE 9';
+            if ((/MSIE 10\./gi).test(navigator.appVersion)) return 'IE 10';
+            if ((/MSIE/gi).test(navigator.appVersion)) return 'Less-than IE 6';
+            if ((/rv\:11\./gi).test(navigator.appVersion)) return 'IE 11';
+            return 'Unknown IE';
+        }
+    },
+
+    // Windows 版本
+    getWinPc = function() {
+
+        if(!isMsPc()) return false;
+
+        if(getBS() == 'Firefox') {
+            checkId = navigator.oscpu;
+        } else {
+            checkId = navigator.appVersion;
+        }
+
+        if ((/nt 5\.0/gi).test(checkId)) return 'Windows 2000';
+        if ((/nt 5\.1/gi).test(checkId)) return 'Windows XP | Server 2003';
+        if ((/nt 5\.2/gi).test(checkId)) return 'Windows XP | Server 2003';
+        if ((/nt 6\.0/gi).test(checkId)) return 'Windows Vista | Server 2008';
+        if ((/nt 6\.1/gi).test(checkId)) return 'Windows 7 | Server 2008 R2';
+        if ((/nt 6\.2/gi).test(checkId)) return 'Windows 8 | Server 2012';
+        if ((/nt 6\.3/gi).test(checkId)) return 'Windows 8.1 | Server 2012 R2';
+        if ((/nt 6\.4/gi).test(checkId)) return 'Windows 10';
+        if ((/nt 10\./gi).test(checkId)) return 'Windows 10';
+        return 'Unknown Windows';
+    },
+
+    // 系统架构 x86 | x64
+    getWinPcType = function() {
+
+        if(!isMsPc()) return false;
+
+        if(getBS() == 'Firefox') {
+            checkId = navigator.oscpu;
+        } else {
+            checkId = navigator.appVersion;
+        }
+
+        if ((/Win64/gi).test(checkId)) return 'x64';
+        if ((/wow64/gi).test(checkId)) return 'x64';
+        if ((/x64/gi).test(checkId)) return 'x64';
+
+        return 'x86';
+    },
+
+    // iOS 设备版本
+    getIosVer = function() {
+        if(getDevice() == 'iPhone'
+            || getDevice() == 'iPad'
+            || getDevice() == 'iPod') {
+            try {
+                var tmpStr  = navigator.appVersion;
+                iVer        = tmpStr.split('Mobile/');
+                iVer        = iVer[1].split(' ');
+                return iVer[0];
+            } catch (e) {
+                return 'Unknown iOS';
+            }
+        }
+        return false;
+    },
+
+    // Mac 系统版本
+    getMacVer = function() {
+        if(!isMac()) return false;
+        return 'Mac OS X';
+    },
+
+    cBsInfo = {
+        getBS:      getBS(),
+        getIE:      getIE(),
+        getDevice:  getDevice(),
+        getWinPc:   getWinPc(),
+        getWinPcType: getWinPcType(),
+        getIosVer:  getIosVer(),
+        getMacVer:  getMacVer()
+    };
+
+    window.cBsInfo = cBsInfo;
+        
+})(window);
+
+
+console.log(cBsInfo);
+document.body.innerHTML = '<pre>' + JSON.stringify(cBsInfo, null, 4) + '</pre>';
+console.log('end');
+///////////////////////////////////////////////////////////////////////////////
+console.log(navigator);
+///////////////////////////////////////////////////////////////////////////////
+
+
+if ((/MSIE/gi).test(navigator.appVersion)) {
+    document.body.innerHTML = '<body><h1>你是穿越过来的吗? 还在使用古董级别的 IE 浏览器!</h1></body>';
+}
+
+</script>

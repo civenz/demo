@@ -1,0 +1,15 @@
+# coding:utf-8
+
+<SwitchScreen>:
+
+    Screen:
+        name: 'main'
+        Button:
+            text: 'Hello world!'
+            on_release: root.current = 'child'
+
+    Screen:
+        name: 'child'
+        Button:
+            text: 'Hello civen!'
+            on_release: root.current = 'main'

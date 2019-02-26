@@ -1,0 +1,226 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" dir="ltr">
+<head>
+<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<!-- windows phone 点击无高光 -->
+<meta name="msapplication-tap-highlight" content="no">
+
+<meta charset="utf-8" />
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<title>获取分辨率</title>
+<link rel="shortcut icon" href="https://civenz.github.io/favicon.ico">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+<style>
+
+:root, html {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    background: white; /* transparent */
+}
+
+body {
+    margin: 0 auto;
+    border: 0;
+    padding: 0;
+    outline: none;
+    min-width: 240px;
+    min-height: 100%;
+    max-width: 800px;
+    background: #f2f2f2;
+}
+
+#resolution {
+    max-width: 720px;
+    position: fixed;
+    left: 10%;
+    top: 3em;
+}
+
+#position {
+    max-width: 720px;
+    position: fixed;
+    left: 10%;
+    top: 1em;
+}
+
+</style>
+
+</head>
+
+<body>
+<div id="resolution"></div>
+<div id='position'></div>
+<!-- -->
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+<script type="text/javascript">
+
+// 视网膜屏幕设置 Meta viewport.
+if(window.devicePixelRatio && window.devicePixelRatio > 1) {
+    var metaViewport        = document.createElement('meta');
+    metaViewport.name       =  'viewport',
+    metaViewport.content    = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    document.getElementsByTagName('head')[0].appendChild(metaViewport);
+}
+
+//
+function printInfo(info) {
+    try {
+        var str = '<p>页面: ' + info.pageWidth + 'x' + info.pageHeight + '</p><p>'
+                + '页面可见: ' + info.pageWidthSeen + 'x' + info.pageHeightSeen + '</p><p>'
+                + '浏览器: ' + info.browserWidth + 'x' + info.browserHeight + '</p><p>'
+                + '显示器: ' + info.screenWidth + 'x' + info.screenHeight + '</p><p>'
+                + '页面滚动条位置: X_' + info.scrollX + ' | Y_' + info.scrollY + '</p><p>'
+                + '页面滚动百分比: X_' + info.scrollPercentX + ' | Y_' + info.scrollPercentY + '</p><p>'
+                + '视网膜像素比: ' + window.devicePixelRatio + '</p>'
+                ;
+        return str;
+    }catch (e) {}
+    return '';
+}
+
+// 获取 屏幕|页面|页面滚动条 的相关参数.
+function getScreenInfo() {
+    var info = {};
+
+    // 页面垂直滚动条的位置
+    try {
+        info.scrollY    = window.scrollY
+            || window.pageYOffset
+            || document.documentElement.scrollTop;
+    } catch (e) {
+        info.scrollY    = 'Unknown';
+    }
+
+    // 页面水平滚动条的位置
+    try {
+        info.scrollX    = window.scrollX
+            || window.pageXOffset
+            || document.documentElement.scrollLeft;
+    } catch (e) {
+        info.scrollX    = 'Unknown';
+    }
+
+    // 页面实际宽
+    try {
+        info.pageWidth  = document.body.offsetWidth
+            || document.body.clientWidth;
+    } catch (e) {
+        info.pageWidth  = 'Unknown';
+    }
+
+    // 页面实际高
+    try {
+        info.pageHeight = document.body.offsetHeight
+            || document.body.clientHeight;
+    } catch (e) {
+        info.pageHeight = 'Unknown';
+    }
+
+    // 页面可见宽
+    try {
+        info.pageWidthSeen  = window.innerWidth
+            || document.documentElement.clientWidth;
+    } catch (e) {
+        info.pageWidthSeen  = 'Unknown';
+    }
+
+    // 页面可见高
+    try {
+        info.pageHeightSeen = window.innerHeight
+            || document.documentElement.clientHeight;
+    } catch (e) {
+        info.pageHeightSeen = 'Unknown';
+    }
+
+    // 屏幕宽
+    info.screenWidth        = screen.width,
+    // 屏幕高
+    info.screenHeight       = screen.height,
+    // 浏览器宽
+    info.browserWidth       = window.outerWidth
+            || document.documentElement.clientWidth,
+    // 浏览器高
+    info.browserHeight      = window.outerHeight
+            || document.documentElement.clientHeight,
+
+    info.scrollPercentX     = Math.floor(((info.scrollX) / (info.pageWidth - info.pageWidthSeen)).toFixed(2) * 100),
+    info.scrollPercentY     = Math.floor(((info.scrollY) / (info.pageHeight - info.pageHeightSeen)).toFixed(2) * 100);
+
+    return info;
+}
+
+
+function setFontSize(pageWidthSeen) {
+    var htmlFontSize;
+
+    if(pageWidthSeen > 800) {
+        htmlFontSize = 40;
+    } else if(pageWidthSeen <=800 && pageWidthSeen > 240) {
+        htmlFontSize = pageWidthSeen/20;
+    } else {
+        htmlFontSize = 12;
+    }
+
+    document.getElementsByTagName('html')[0].setAttribute('style','font-size: '+htmlFontSize+'px');
+}
+
+// HTML 装载完毕
+window.onload = function() {
+    // HTML 装载前世获取不到页面的宽高的, 装载完毕后才有相关页面的宽高参数.
+    info = getScreenInfo();
+    setFontSize(info.pageWidthSeen);
+    // 重新设置字体后高度不同. 需要重新获取.
+    pageWidth = window.innerHeight || document.documentElement.clientHeight;
+    info = getScreenInfo();
+
+    document.getElementById('resolution').innerHTML = printInfo(info);
+    getScrollYPosition(info.scrollPercentY);
+}
+
+function getScrollYPosition(scrollPercentY) {
+    if(scrollPercentY == 100) {
+        document.getElementById('position').innerHTML = '你要挖宝?';
+    } else if(scrollPercentY == 0) {
+        document.getElementById('position').innerHTML = '你已在巅峰!';
+    } else {
+        document.getElementById('position').innerHTML = '';
+    }
+}
+
+// 滚动条变化
+window.onscroll = function() {
+    // 滚动条变化
+    var info = getScreenInfo();
+    document.getElementById('resolution').innerHTML = printInfo(info);
+    getScrollYPosition(info.scrollPercentY);
+    
+    //var string = obj2str(window); document.getElementById('window').innerHTML = string;
+    //console.log(window);
+}
+
+// 浏览器窗口大小变化
+window.onresize = function() {
+    var info = getScreenInfo();
+    setFontSize(info.pageWidthSeen);
+    document.getElementById('resolution').innerHTML = printInfo(info);
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+# coding:utf-8
+
+#:include includes/kivy/child.kv
+
+<MainScreen>:
+    name: 'home'
+    Button:
+        font_name: app.fontFamily
+        text: app.mainText
+        font_size: app.fontSzie
+        on_release: root.manager.current = 'child'

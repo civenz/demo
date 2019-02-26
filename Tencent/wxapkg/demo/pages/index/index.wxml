@@ -1,0 +1,38 @@
+<!--index.wxml-->
+<view class="container">
+  <view class="userinfo">
+    <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 获取头像昵称 </button>
+    <block wx:else>
+      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
+      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+    </block>
+  </view>
+  <view class="usermotto">
+    <text class="user-motto">{{motto}} {{date}}</text>
+  </view>
+
+  <view>
+    <button bindtap="getUserDetail">用户信息</button>
+    <button open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">手机号</button>
+    <button open-type="contact" bindcontact="contact">客服消息</button>
+    <button open-type="share">发用户转发</button>
+
+    <button bindtap="getDeviceInfo">设备信息</button>
+    <button bindtap="getNetworkStatus">网络状态</button>
+    <button bindtap="scanQrCode">扫描二维码</button>
+
+    <button bindtap="getGps">GPS</button>
+    <button bindtap="clearCahce">清除缓存</button>
+  </view>
+
+<view>
+    <icon type="success" size="64"/>
+</view>
+
+<view>
+  <block wx:for="{{iconColor}}" wx:key="item-color">
+    <icon type="success" size="40" color="{{item}}"/>
+  </block>
+</view>
+
+</view>

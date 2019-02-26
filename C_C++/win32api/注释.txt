@@ -1,0 +1,121 @@
+[注释1]
+
+窗口类风格参数
+
+01. CS_VREDRAW
+    : 当垂直长度改变或移动窗口时，重画整个窗口
+
+02. CS_HREDRAW
+    : 当水平长度改变或移动窗口时，重画整个窗口
+
+03. CS_DBLCLKS
+    : 允许向窗口发送双击鼠标键的消息
+        [当双击窗体时]
+        如果窗口没有CS_DBLCLKS标志，则系统向窗口依次发送如下消息：
+            1 WM_LBUTTONDOWN
+            2 WM_LBUTTONUP
+            3 WM_LBUTTONDOWN
+            4 WM_LBUTTONUP
+        如果窗口有CS_DBLCLKS标志，则系统向窗口依次发送如下消息：
+            1 WM_LBUTTONDOWN
+            2 WM_LBUTTONUP
+            3 WM_LBUTTONDBLCLK
+            4 WM_LBUTTONUP
+
+04. CS_GLOBALCLASS
+    : 当调用 CreateWindow 或 CreateWindowEx 函数来创建窗口时允许它的hInstance参数和注册窗口类时传递给 RegisterClass 的 hInstance参数不同。如果不指定该风格，则这两个 hInstance 必须相同。
+
+05. CS_BYTEALIGNCLIENT
+    : 在字节边界上（在x方向上）定位窗口的用户区域的位置
+
+06. CS_BYTEALIGNWINDOW
+    : 在字节边界上（在x方向上）定位窗口的位置
+
+07. CS_CLASSDC
+    : 该窗口类的所有窗口实例都共享一个窗口类DC
+
+08. CS_OWNDC
+    : 给予每个窗口实例它本身的DC。注意，尽管这样是很方便，但它必须慎重使用，因为每个DC大约要占800个字节的内存。
+
+09. CS_PARENTDC
+    : 将子窗口的裁剪区域设置到父窗口的DC中去，这样子窗口便可以在父窗口上绘制自身。注意，这是子窗口还是从系统缓存中获取DC，而不是使用父窗口的DC。使用该风格可以提高系统性能。
+
+010. CS_NOCLOSE
+    : 禁止系统菜单的关闭选项
+
+11. CS_SAVEBITS
+    : 以位图形式保存被该窗口遮挡的屏幕部分，这样当给窗口移动以后，系统便可以用该保存的位图恢复屏幕移动的相应部分，从而系统不用向被该窗口遮挡的窗口发送 WM_PAINT 消息。该特性对于菜单类型的窗口比较合适，因为它通常是简短的显示一下之后便消失。设置该特性将增加显示该窗口的时间，因为它通常要先分配保存位图的内存。
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+[注释2]
+
+01. WS_OVERLAPPED
+    重叠窗口(overlapped window)，具有应用程序主窗口的全部特点。它的非客户区包括一个可伸缩的框架、菜单条、标题栏和最小化、最大化按钮。
+
+02. WS_POPUP
+    弹出窗口(popup window)，具有消息框或者对话框的全部特点。它的非客户区包括一个固定大小的框架和一个标题栏。
+
+03. WS_CHILD
+    子窗口(child window)，具有类似按钮控件的全部特点。它没有非客户区，窗口的处理过程负责绘制窗口的每个部分。
+
+04. WS_MINIMIZE
+    表示窗口是最小化的
+
+05. WS_MAXIMIZE
+    表示窗口是最大化的
+
+06. WS_VISIBLE
+    控制窗体是否显示
+
+07. WS_DISABLED
+    控制窗体是否可用
+
+08. WS_CLIPSIBLINGS
+    这个属性的含义需要特别注意，它的意思就是剪辑兄弟窗口，也就是不对兄弟窗口进行绘制，为什么会绘制兄弟窗口？因为两个窗口可能会重叠！！！如果父亲窗口是overlapped的重叠窗口，那么兄弟窗口必然会涉及到覆盖剪辑问题。如果某子窗口使用了ws_clipsiblings属性，那么被该窗口覆盖的兄弟窗口区域本窗口就不在进行绘制了，就是说本窗口不绘制在其下面还有兄弟窗口的那部分窗口，效果就是在其下面的兄弟窗口即使z次序小于本窗口【在本窗口的下面的兄弟窗口】，如果本窗口设置了clipsublings那么下面兄弟窗口就可以显示出来了（没有绘制该部分使得下面的遮挡部分兄弟显示出来了）
+
+09. WS_CLIPCHILDREN
+    其含义就是，父窗口不对子窗口区域进行绘制。默认情况下父窗口会对子窗口背景是进行绘制的，但是如果父窗口设置了WS_CLIPCHILDREN属性，父亲窗口不在对子窗口背景绘制。
+
+10. WS_CAPTION
+    创建该窗口具有标题栏 (意味着WS_BORDER样式)。 不能与使用WS_DLGFRAME样式
+
+11. WS_BORDER
+    创建具有边框的窗口
+
+12. WS_DLGFRAME
+    创建一个带对话框边框风格的窗口（双边框）。这种风格的窗口不能带标题条
+
+13. WS_VSCROLL
+    出现垂直滚动条
+
+14. WS_HSCROLL
+    出现水平滚动条
+
+15. WS_SYSMENU
+    控制窗口右上角的按键（最大化，最小化，关闭）
+
+16. WS_THICKFRAME
+可以调节窗口大小，鼠标在窗口边沿时变成双向箭头
+
+17. WS_GROUP
+    指定一组控件在其中用户可以从一个控件移到下的箭头键的第一个控件。 使用定义的所有控件WS_GROUP样式FALSE的第一个控件属于同一个组之后。 使用下一个控件WS_GROUP样式启动下一个组 （即，开始下的一个组结尾）
+
+18. WS_TABSTOP
+    控件通过其用户可以通过使用 TAB 键移动的任意数量之一指定。 TAB 键将用户移至指定的下一个控件WS_TABSTOP样式
+
+19. WS_MINIMIZEBOX
+    控制是否显示窗口右上角的“最小化”按钮
+
+20. WS_MAXIMIZEBOX
+    控制是否显示窗口右上角的“最大化”按钮
+    常用的组合定义
+    WS_TILED 与 WS_OVERLAPPED 相同
+    WS_ICONIC 与 WS_MINIMIZE 相同
+    WS_SIZEBOX 与 WS_THICKFRAME 相同
+    WS_TILEDWINDOW 与 WS_OVERLAPPEDWINDOW 相同
+    WS_OVERLAPPEDWINDOW 相当于 (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
+    WS_POPUPWINDOW 相当于 (WS_POPUP | WS_BORDER | WS_SYSMENU)
+    WS_CHILDWINDOW 相当于 (WS_CHILD)

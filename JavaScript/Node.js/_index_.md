@@ -1,0 +1,2 @@
+- `Node.js 官网: https://nodejs.org/`
+- [packages.md](https://github.com/civenz/demo/blob/master/JavaScript/Node.js/packages.md) - 常用的安装包

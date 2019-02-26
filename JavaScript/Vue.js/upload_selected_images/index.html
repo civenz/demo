@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset='UTF-8'>
+<!-- HTML 4.01: <meta http-equiv='content-type' content='text/html; charset=UTF-8'> -->
+<meta http-equiv='X-UA-Compatible' content='IE=edge, chrome=1'>
+
+<title>vue & axios upload files.</title>
+<meta name='keywords' content='upload files'>
+<meta name='description' content='Developed by Civen. Upload files use vue.js & axios.js.'>
+
+<meta name='expires' content='0'>
+<meta http-equiv='expires' content='0'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='cache-control' content='no-store, no-cache, must-revalidate'>
+
+<style>
+#valid_images_list img {
+    max-width: 150px;
+    max-height: 100px;
+}
+.fontsize0 {
+    font-size: 0;
+}
+
+.img_new_css {
+    opacity: 0.5;
+}
+.img_new_css2 {
+    filter: contrast(80%);
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- APP HTML CODE -->
+<div id='app'>
+    <input v-on:change='tirggerFiles' type='file' multiple='multiple' accept='image/jpeg, image/png, image/webp, image/gif' style='display:none;' name='images[]' id='images'>
+    <button v-on:click='selectFiles'>选择需要上传的图片</button>
+    <button v-on:click='uploadFilesBtn' v-bind:disabled='uploadBtnDisabled'>提交</button>
+    <progress v-show='progressStatus' v-bind:value='percentVal' max='100'></progress>
+    <div v-show='errorShow' v-html='errorMessage'></div>
+
+    <div v-show='validFiles' id='valid_images_list'>
+        <div>图片列表:</div>
+            <div>
+
+                <template v-if='imagesShowMode == 0'>
+
+                    <!-- 文件名 回传 IMG.SRC -->
+                    <template v-if='imagesShowUploaded'>
+                        <div v-for='(image, index) in validFilesList' v-bind:id='image.id'><div>[<font v-bind:color='image.color'>{{ image.status }}</font>] {{ image.name }} <button v-show='image.seen' v-on:click='removeImage(index)'>X</button></div><div class='fontsize0'><img v-bind:src='image.url'></div></div>
+                    </template>
+                    
+                    <!-- 文件名 -->
+                    <template v-else>
+                        <div v-for='(image, index) in validFilesList' v-bind:id='image.id'>[<font v-bind:color='image.color'>{{ image.status }}</font>] {{ image.name }} <button v-show='image.seen' v-on:click='removeImage(index)'>X</button></div>
+                    </template>
+
+                </template>
+
+                <!-- 文件名 & 图片 -->
+                <template v-else-if='imagesShowMode == 1'>
+                    <!-- 图片 class 样式处理 -->
+                    <div v-for='(image, index) in validFilesList' v-bind:id='image.id'><div>[<font v-bind:color='image.color'>{{ image.status }}</font>] {{ image.name }} <button v-show='image.seen' v-on:click='removeImage(index)'>X</button></div><div><span><img v-bind:src='image.url2' v-bind:id='image.thumb' v-bind:class='[customCssImageId.indexOf(image.thumb) === -1 ? "img_new_css" : "img_new_css2" , customCssActive ? "css_active" :  "css_disabled", customDynamic, "cssStatic"]'></span> <span v-show='image.urlseen'><img v-bind:src='image.url'></span></div></div>
+                </template>
+
+            </div>
+    </div>
+
+    <div v-show='invalidSizeFiles'>
+        <div>文件过大类型:</div>
+        <div><div v-for='(image) in errorFilesListSize'>{{ image.name }} [<font color='red'>{{ image.size }}MB</font>]</div></div>
+    </div>
+
+    <div v-show='invalidTypeFiles'>
+        <div>无效类型:</div>
+        <div><div v-for='(image) in errorFilesListType'>{{ image.name }}</div></div>
+    </div>
+</div>
+
+<!-- HTML CODE -->
+
+<!-- JavaScript CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.3/vue.min.js" defer="defer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js" defer="defer"></script>
+<!-- JavaScript CDN -->
+
+<!-- JavaScript --
+<script src='vue.min.js'></script>
+<script src='axios.min.js'></script>
+<!-- JavaScript -->
+
+<script>
+'use strict';
+
+/*****************************************************************************
+// 挂载
+var app2 = Vue.extend({
+});
+new app2().$mount('#app2_div');
+/*****************************************************************************/
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        errorFilesListType: [],
+        errorFilesListSize: [],
+        validFilesList:     [],
+        validFiles:         false,
+        invalidTypeFiles:   false,
+        invalidSizeFiles:   false,
+        progressStatus:     false,
+        errorShow:          false,
+        errorMessage:       '',
+        uploadBtnDisabled:  true,
+
+        // 样式处理
+        customCssImageId:   [], // 用于设置 itemlist 中特别 item 的 class 样式.
+        customDynamic:      'test',
+        customCssActive:    false,
+
+        percentVal:         0,
+        curFiles:           [],
+        base64Code:         '',
+
+        maxFilesQty:        10,     // 最多上传 50 个文件
+        maxFilesSize:       200,    // 文件总大小不能超过 200M;
+        maxSingleFileSize:  20,      // 单个文件不能超过 1M;
+        validFileType:      ['image/jpeg', 'image/png'],    // 有效 MIME: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+        imagesShowMode:     1,      // 显示模式: 0 = text; 1 = text & images;
+        imagesShowUploaded: true,   // 显示已上传图片, 模式为 txet 时生效;
+    },
+    methods: {
+///////////////////////////////////////////////////////////////////////////////
+        selectFiles: function() {
+            document.getElementById('images').click();
+        },
+///////////////////////////////////////////////////////////////////////////////
+        tirggerFiles: function(event) {
+            this.uploadBtnDisabled  = false;
+            this.errorFilesListType = [];
+            this.errorFilesListSize = [];
+            this.validFilesList     = [],
+            
+            this.progressStatus     = false;
+            this.validFiles         = false,
+            this.invalidTypeFiles   = false,
+            this.invalidSizeFiles   = false,
+            this.errorShow          = false;
+            this.errorMessage       = '';
+
+            let tempFiles           = event.target.files;
+            let curFiles            = [];
+            let totalFilesSize      = 0;
+
+            if(!tempFiles.length) return false;
+
+            if(tempFiles.length > this.maxFilesQty) {
+                this.errorMessage   = `上传文件不能超过 <font color=\'red\'>${this.maxFilesQty}<\/font> 个！`;
+                this.errorShow      = true;
+                return false;
+            }
+
+            Array.prototype.push.apply(curFiles, tempFiles);
+/*****************************************************************************/
+// 排除非法图片
+
+            for(let item of tempFiles) {
+                totalFilesSize      += item.size;
+
+                /* 过滤文件:  非法文件类型 */
+                let fileTypePass    = false;
+                for(let index in this.validFileType) {
+                    if(item.type == this.validFileType[index])
+                        fileTypePass = true;
+                }
+                if(!fileTypePass) {
+                    curFiles        = curFiles.filter(file => file.name !== item.name);
+                    this.errorFilesListType.push({name: item.name});
+                }
+
+                /* 过滤文件:  单文件过大 */
+                if(item.size > this.maxSingleFileSize * 1024 * 1024 ) {
+                    curFiles        = curFiles.filter(file => file.name !== item.name);
+                    let curFileSize = Number(item.size / 1024 / 1024).toFixed(1);
+                    this.errorFilesListSize.push({name: item.name, size: curFileSize});
+                }
+
+            }
+
+            /* 总文件过大提示 */
+            if(totalFilesSize > this.maxFilesSize * 1024 * 1024) {
+                let selectFilesSize = totalFilesSize / 1024 / 1024;
+                this.errorMessage   = `[当前总文件大小: <font color=\'red\'>${Number(selectFilesSize).toFixed(1)}MB<\/font>] [最大支持: <font color=\'red\'>${this.maxFilesSize}MB<\/font>]`;
+                this.errorShow      = true;
+                return false;
+            }
+
+            /* 非法文件类型提示 */
+            if(this.errorFilesListType.length > 0) {
+                this.invalidTypeFiles   = true;
+            }
+            /* 单文件过大提示 */
+            if(this.errorFilesListSize.length > 0) {
+                this.invalidSizeFiles   = true;
+            }
+
+/*****************************************************************************/
+// 有效图片
+            if(curFiles.length > 0) {
+                this.customCssImageId   = [];
+                let i = 0;
+
+                curFiles.forEach(function (item, i) {
+                    // 图片ID
+                    let thumb   = 'imgId_' + item.name.replace('.', '_');
+
+                    if(i % 2 == 0) app.customCssImageId.push(thumb);
+                    i++;
+
+                    app.validFilesList.push({
+                        name:       item.name,
+                        status:     '状态',
+                        color:      'black',
+                        seen:       true,
+                        url2:       '',
+                        thumb:      thumb,
+                        url:        '',
+                        urlseen:    false,
+                    });
+                });
+
+                this.curFiles   = curFiles;
+                if(this.imagesShowMode == 1) this.showImagesThumb();
+
+                this.validFiles = true;
+            } else {
+                this.uploadBtnDisabled  = true;
+            }
+/*****************************************************************************/
+        },
+///////////////////////////////////////////////////////////////////////////////
+        showImagesThumb: function() {
+            for(let index in this.curFiles) {
+                //由于 FileReader 不能赋值所以需要直接处理 DOM
+                getFileReader(this.curFiles[index], this.validFilesList[index].thumb);
+            }
+        },
+///////////////////////////////////////////////////////////////////////////////
+        uploadFilesBtn: function() {
+            this.uploadFiles();
+        },
+///////////////////////////////////////////////////////////////////////////////
+        uploadFiles() {
+            this.uploadBtnDisabled      = true;
+            if(!this.curFiles.length) {
+                this.progressStatus     = false;
+                this.validFiles         = false,
+                this.invalidTypeFiles   = false,
+                this.invalidSizeFiles   = false,
+                this.uploadBtnDisabled  = false;
+                this.errorShow          = true;
+                this.errorMessage       = '上传图片不能为空';
+                return false;
+            }
+            this.progressStatus         = true;
+            uploadFilesAjax(this.curFiles);
+        },
+///////////////////////////////////////////////////////////////////////////////
+        removeImage: function(index) {
+            let removeName  = this.validFilesList[index].name;
+            this.curFiles   = this.curFiles.filter(file => file.name !== removeName);
+            this.validFilesList.splice(index, 1);
+        },
+///////////////////////////////////////////////////////////////////////////////
+    },
+});
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+axios.interceptors.request.use(function(config) {
+    // Do something before request is sent
+    config.headers['X-Requested-With'] = 'XMLHttpRequest';
+    return config;
+},
+function(err) {
+    // Do something with request error
+    return Promise.reject(err);
+});
+
+axios.interceptors.response.use(function(response) {
+    // Do something with response data
+
+    let err     = false;
+    let data    = response.data;
+    if( typeof data != 'object') err = true;
+    if(!data.length) err = true;
+    if(err) response.isError = true;
+
+    return response;
+},
+function(err) {
+    // Do something with response error
+    if (err && err.response) {
+        // 服务器返回的错误
+        err.message = `${err.response.status} ${err.response.statusText}`;
+    } else {
+        // 有可能因 axios 配置引起错误. 比如 timeout 的设置.
+    }
+    return Promise.reject(err);
+});
+///////////////////////////////////////////////////////////////////////////////
+
+// async await 异步处理
+async function uploadFilesAjax(files) {
+    if(typeof files != 'object') return false;
+    if(!files.length) return false;
+
+    let postData = new FormData();
+    for(let item of files) {
+        postData.append('UploadFiles[]', item);
+    }
+    postData.append('str1', '123');
+    postData.append('str2', '2333333');
+
+    // AJAX 提交数据
+    let percentVal = 0;
+    await axios({
+        url:            './upload.php',
+        method:         'post',
+        data:           postData,
+        responseType:   'text',         //'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
+        timeout:        1 * 20 * 1000,   //请求超时为 10 秒: 1 * 10 * 1000; 2分钟 2 * 60 * 1000
+        headers:        {
+            'Content-Type': 'multipart/form-data',
+        },
+        params: { // GET params
+            get1:   'Fred',
+            get2:   'Flintstone',
+        },
+        onUploadProgress: function (event) {
+            // 上传进度条
+            if(event.lengthComputable){
+                let loaded      = event.loaded;
+                let total       = event.total;
+                percentVal      = Math.floor(100 * loaded / total);
+                app.percentVal  = percentVal;
+            }
+        },
+    }).then(function (response) {
+/*
+*/
+        if (response.isError) {
+
+            if(!response.data.length) {
+                app.errorMessage    = `空数据!`;
+            } else {
+                app.errorMessage    = response.data;
+            }
+
+            app.errorMessage        = response.data;
+            app.errorShow           = true;
+            app.uploadBtnDisabled   = false;
+            app.progressStatus      = false;
+            return false;
+        } else if (response.request) {
+            //console.log(response.status, response.statusText);
+        } else {
+            alert('Error!');
+            return false;
+        }
+
+        let data = response.data;
+
+        // 判断是否有效数据结构
+        if( !data[0].status
+            || !data[0].id
+            || !data[0].name
+            || !data[0].newname
+            || !data[0].url
+        ) {
+            app.errorMessage        = '错误的数据! 请联系技术人员!';
+            app.errorShow           = true;
+            app.uploadBtnDisabled   = true;
+            app.progressStatus      = false;
+            return false;
+        }
+
+        for(let i in data) {
+            switch(data[i]['status']) {
+                case 1:
+                    for(let j in app.validFilesList) {
+                        if(app.validFilesList[j].name == data[i].name) {
+                            Object.assign(app.validFilesList[j], {
+                                url:        data[i].url,
+                                status:     '成功',
+                                color:      'green',
+                                seen:       false,
+                                urlseen:    true,
+                            });
+                            break;
+                        }
+                    }
+                    break;
+                case 2:
+                    for(let j in app.validFilesList) {
+                        if(app.validFilesList[j].name == data[i].name) {
+                            Object.assign(app.validFilesList[j], {
+                                url:        data[i].url,
+                                status:     '已有',
+                                color:      'gray',
+                                seen:       false,
+                                urlseen:    true,
+                            });
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    for(let j in app.validFilesList) {
+                        if(app.validFilesList[j].name == data[i].name) {
+                            Object.assign(app.validFilesList[j], {
+                                url:        '',
+                                status:     '失败',
+                                color:      'red',
+                                seen:       false,
+                                urlseen:    false,
+                            });
+                            break;
+                        }
+                    }
+            }
+        }
+
+        app.curFiles            = [];
+        app.errorMessage        = '<font color="green">上传完成.</font>';
+        app.errorShow           = true;
+        app.uploadBtnDisabled   = true;
+        app.progressStatus      = false;
+    }).catch(err => {
+        app.errorMessage        = `<font color="red">${err.message}</font>`;
+        app.errorShow           = true;
+        app.uploadBtnDisabled   = false;
+        app.progressStatus      = false;
+
+    })
+    ;
+}
+
+//由于 FileReader 不能赋值所以需要直接处理 DOM
+function getFileReader(file, elem) {
+    let reader      = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload   = function (e) {
+        document.getElementById(elem).setAttribute('src',  e.target.result);
+    };
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//查看 Vue 版本
+//console.log(Vue.version);
+///////////////////////////////////////////////////////////////////////////////
+</script>
+</body>
+<html>

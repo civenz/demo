@@ -1,0 +1,186 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" dir="ltr">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<!-- windows phone 点击无高光 -->
+<meta name="msapplication-tap-highlight" content="no">
+
+<meta charset="utf-8" />
+<title>Storage</title>
+<link rel="shortcut icon" href="https://civenz.github.io/favicon.ico">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+<style>
+
+:root, html {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    background: white; /* transparent */
+}
+
+body {
+    margin: 0 auto;
+    border: 0;
+    padding: 0;
+    outline: none;
+    min-width: 240px;
+    min-height: 100%;
+    max-width: 800px;
+    background: #f2f2f2;
+}
+
+div, pre {
+    font-size: 16px;
+    overflow: hidden;
+    white-space: pre-line;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+    text-align-last: start;
+    line-height: 1.5em;
+}
+</style>
+
+</head>
+
+<body>
+
+<div>window.webkitStorageInfo.queryUsageAndQuota.TEMPORARY <button id="wwTemp">Check</button></div>
+<div>webkitStorageInfo.requestQuota.PERSISTENT<button id="wwPerm">Check</button></div>
+<div>navigator.webkitTemporaryStorage.queryUsageAndQuota<button id="nwTemp">Check</button></div>
+<div>navigator.webkitPersistentStorage.requestQuota<button id="nwPerm">Check</button></div>
+<div>JS<button id="console">Check</button></div>
+
+<div><pre id='console-log'></pre></div>
+
+<script type="text/javascript">
+
+/*****************************************************************************/
+
+/**
+ * Object 转 String
+ * Chrome 不赞成使用 window.webkitStorageInfo 方式存储.
+ * 建议使用 navigator.webkitTemporaryStorage | navigator.webkitPersistentStorage [queryUsageAndQuota|requestQuota]
+ */
+
+var string = '';
+
+var obj2str = function( obj ) {
+
+    var arr = [], arr2 = [],
+
+    string = JSON.stringify( obj, function( key, value ) {
+        if ( typeof value === 'object' ) {
+            if ( !arr.indexOf( value )) {
+                return '__circular__' + ( typeof value ) + '[' + key + ']';
+            }
+            arr.push(value);
+            // navigator
+        }
+        return value;
+    }, 4);
+    return string;
+};
+document.querySelector('#console').addEventListener(
+    'click',
+    function() {
+        string = obj2str(window);
+        outStr(string);
+    }, false
+);
+
+/*****************************************************************************/
+
+function outStr(string) {
+    document.getElementById('console-log').innerHTML = string;
+}
+
+/*****************************************************************************/
+/* window.webkitStorageInfo.queryUsageAndQuota */
+document.querySelector('#wwTemp').addEventListener(
+    'click',
+    function() {
+        webkitStorageInfo.queryUsageAndQuota(
+            webkitStorageInfo.TEMPORARY,
+            function(usedBytes, grantedBytes) {
+                string = 'Used: ' + usedBytes + ' Bytes; Granted: ' + grantedBytes + ' Bytes';
+                outStr(string);
+            },
+            function(error) {
+                alert(error)
+            });
+
+    },
+    false
+);
+
+/*---------------------------------------------------------------------------*/
+
+/* window.webkitStorageInfo.requestQuota */
+document.querySelector('#wwPerm').addEventListener(
+    'click',
+    function() {
+        webkitStorageInfo.requestQuota(
+            webkitStorageInfo.PERSISTENT,
+            1024, //请求大小 1024 Bytes
+            function(grantedBytes) {
+                string = 'Granted: ' + grantedBytes + ' Bytes';
+                outStr(string);
+            },
+            function(error) {
+                alert(error)
+            });
+
+    },
+    false
+);
+
+/*---------------------------------------------------------------------------*/
+
+/* navigator.webkitTemporaryStorage.queryUsageAndQuota */
+document.querySelector('#nwTemp').addEventListener(
+    'click',
+    function() {
+        navigator.webkitTemporaryStorage.queryUsageAndQuota(
+            function(usedBytes, grantedBytes) {
+                string = 'Used: ' + usedBytes + ' Bytes; Granted: ' + grantedBytes + ' Bytes';
+                outStr(string);
+            }
+        );
+    },
+    false
+);
+
+/*---------------------------------------------------------------------------*/
+
+/* navigator.webkitPersistentStorage.requestQuota */
+document.querySelector('#nwPerm').addEventListener(
+    'click',
+    function() {
+         navigator.webkitPersistentStorage.requestQuota(
+            1024, //请求大小 1024 Bytes
+            function(grantedBytes) {
+                string = 'Granted: ' + grantedBytes + ' Bytes';
+                outStr(string);
+            },
+         );
+    },
+    false
+);
+/*****************************************************************************/
+</script>
+
+</body>
+
+</html>
